@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - Online Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Book Details -->
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Book Cover -->
+                        <div class="col-md-4 mb-4">
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="img-fluid rounded shadow">
+                            {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 300px;">
+                                    <i class="fas fa-book fa-4x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Book Information -->
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-3">{{ book.title }}</h1>
+                            <p class="lead text-muted mb-3">by {{ book.author }}</p>
+                            
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <strong>ISBN:</strong> <code>{{ book.isbn }}</code>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Category:</strong> 
+                                    <span class="badge bg-primary">{{ book.category.name }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <strong>Publisher:</strong> {{ book.publisher|default:"Not specified" }}
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Publication Year:</strong> {{ book.publication_year|default:"Not specified" }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <strong>Status:</strong>
+                                    {% if book.status == 'available' %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% elif book.status == 'issued' %}
+                                        <span class="badge bg-warning">Issued</span>
+                                    {% elif book.status == 'lost' %}
+                                        <span class="badge bg-danger">Lost</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ book.status|title }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Copies:</strong> {{ book.available_copies }} available / {{ book.total_copies }} total
+                                </div>
+                            </div>
+                            
+                            {% if book.description %}
+                                <div class="mb-4">
+                                    <h5>Description</h5>
+                                    <p class="text-muted">{{ book.description }}</p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                {% if user.is_authenticated %}
+                                    {% if user.profile.user_type == 'admin' %}
+                                        <a href="{% url 'book_edit' book.id %}" class="btn btn-warning">
+                                            <i class="fas fa-edit me-2"></i>Edit Book
+                                        </a>
+                                        <a href="{% url 'issue_book' %}" class="btn btn-success">
+                                            <i class="fas fa-hand-holding me-2"></i>Issue Book
+                                        </a>
+                                        <a href="{% url 'book_delete' book.id %}" class="btn btn-danger"
+                                           data-confirm="Are you sure you want to delete this book?">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a>
+                                    {% else %}
+                                        {% if book.is_available %}
+                                            <a href="{% url 'request_book' book.id %}" class="btn btn-primary">
+                                                <i class="fas fa-hand-holding me-2"></i>Request Book
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-secondary" disabled>
+                                                <i class="fas fa-clock me-2"></i>Not Available
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'login' %}" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login to Request
+                                    </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'book_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Books
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Availability Status -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Availability
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        {% if book.is_available %}
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-success">Available</h5>
+                            <p class="text-muted">{{ book.available_copies }} copy/copies available</p>
+                        {% else %}
+                            <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+                            <h5 class="text-danger">Not Available</h5>
+                            <p class="text-muted">All copies are currently issued</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Book Statistics -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Statistics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ book.total_copies }}</h4>
+                            <small class="text-muted">Total Copies</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ book.available_copies }}</h4>
+                            <small class="text-muted">Available</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Books -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-book me-2"></i>Related Books
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for related_book in book.category.books.all|slice:":3" %}
+                        {% if related_book.id != book.id %}
+                            <div class="border-bottom pb-2 mb-2">
+                                <h6 class="mb-1">
+                                    <a href="{% url 'book_detail' related_book.id %}" class="text-decoration-none">
+                                        {{ related_book.title }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">by {{ related_book.author }}</small>
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="text-muted">No related books found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

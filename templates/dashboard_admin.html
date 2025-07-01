@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Online Library Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+            </h1>
+            <p class="text-muted">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'book_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Book
+            </a>
+            <a href="{% url 'issue_book' %}" class="btn btn-success">
+                <i class="fas fa-hand-holding me-2"></i>Issue Book
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                Total Books
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_books }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Registered Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Active Issues
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_issues }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Overdue Books
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overdue_books }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'book_add' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Add New Book
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'issue_book' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-hand-holding me-2"></i>Issue Book
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'category_add' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-tag me-2"></i>Add Category
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'transaction_list' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-list me-2"></i>View Transactions
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'book_request_list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-clock me-2"></i>Book Requests
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions and Requests -->
+    <div class="row">
+        <!-- Recent Transactions -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-exchange-alt me-2"></i>Recent Transactions
+                    </h6>
+                    <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Book</th>
+                                        <th>Student</th>
+                                        <th>Status</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in recent_transactions %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'book_detail' transaction.book.id %}" class="text-decoration-none">
+                                                {{ transaction.book.title }}
+                                            </a>
+                                        </td>
+                                        <td>{{ transaction.student.get_full_name|default:transaction.student.username }}</td>
+                                        <td>
+                                            {% if transaction.status == 'issued' %}
+                                                <span class="badge bg-primary">Issued</span>
+                                            {% elif transaction.status == 'returned' %}
+                                                <span class="badge bg-success">Returned</span>
+                                            {% elif transaction.status == 'overdue' %}
+                                                <span class="badge bg-warning">Overdue</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ transaction.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ transaction.issue_date|date:"M d, Y" }}</td>
+                                        <td>{{ transaction.due_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if transaction.status == 'issued' %}
+                                                <a href="{% url 'return_book' transaction.transaction_id %}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-undo"></i>
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">No recent transactions found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Requests -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-clock me-2"></i>Pending Requests
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_requests %}
+                        {% for request in recent_requests %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ request.book.title }}</h6>
+                                    <p class="text-muted small mb-1">by {{ request.student.get_full_name|default:request.student.username }}</p>
+                                    <small class="text-muted">{{ request.request_date|date:"M d, Y" }}</small>
+                                </div>
+                                <span class="badge bg-warning">Pending</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="text-center">
+                            <a href="{% url 'book_request_list' %}" class="btn btn-sm btn-outline-primary">View All Requests</a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">No pending requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Books Alert -->
+    {% if overdue_books > 0 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Warning!</strong> You have {{ overdue_books }} overdue book(s). 
+                <a href="{% url 'transaction_list' %}?status=issued" class="alert-link">View overdue books</a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

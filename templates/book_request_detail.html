@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Process Book Request - OLMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="mb-4 text-center fw-bold">Process Book Request</h2>
+                    
+                    <!-- Request Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">Book Information</h6>
+                            <p><strong>Title:</strong> {{ book_request.book.title }}</p>
+                            <p><strong>Author:</strong> {{ book_request.book.author }}</p>
+                            <p><strong>ISBN:</strong> {{ book_request.book.isbn }}</p>
+                            <p><strong>Category:</strong> {{ book_request.book.category.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">Student Information</h6>
+                            <p><strong>Name:</strong> {{ book_request.student.get_full_name|default:book_request.student.username }}</p>
+                            <p><strong>Email:</strong> {{ book_request.student.email }}</p>
+                            <p><strong>Request ID:</strong> #{{ book_request.id }}</p>
+                            <p><strong>Request Date:</strong> {{ book_request.request_date|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">Book Availability</h6>
+                            <p><strong>Total Copies:</strong> {{ book_request.book.total_copies }}</p>
+                            <p><strong>Available Copies:</strong> {{ book_request.book.available_copies }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if book_request.book.is_available %}
+                                    <span class="badge bg-success">Available</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Not Available</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">Current Status</h6>
+                            <p><strong>Request Status:</strong> 
+                                {% if book_request.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending Review</span>
+                                {% elif book_request.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif book_request.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </p>
+                            {% if book_request.notes %}
+                                <p><strong>Student Notes:</strong> {{ book_request.notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Processing Form -->
+            {% if book_request.status == 'pending' %}
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <h3 class="mb-4 text-center fw-bold">Process Request</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Admin Notes (Optional)</label>
+                                <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Add any notes about this request..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'book_request_list' %}" class="btn btn-secondary flex-fill">Cancel</a>
+                                    <button type="submit" name="action" value="reject" class="btn btn-danger flex-fill">
+                                        <i class="fas fa-times me-2"></i>Reject Request
+                                    </button>
+                                    <button type="submit" name="action" value="approve" class="btn btn-success flex-fill">
+                                        <i class="fas fa-check me-2"></i>Approve Request
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <h3 class="mb-4 fw-bold">Request Already Processed</h3>
+                        <p class="text-muted">This request has already been {{ book_request.status }}.</p>
+                        {% if book_request.processed_by %}
+                            <p><strong>Processed by:</strong> {{ book_request.processed_by.get_full_name|default:book_request.processed_by.username }}</p>
+                            <p><strong>Processed on:</strong> {{ book_request.processed_date|date:"F d, Y H:i" }}</p>
+                        {% endif %}
+                        <a href="{% url 'book_request_list' %}" class="btn btn-dark">Back to Requests</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

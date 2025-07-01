@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Online Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    position: relative;
+    background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+    min-height: 480px;
+    color: #fff;
+    overflow: hidden;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+body > .hero-section, .hero-section {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+.hero-section .hero-content {
+    position: relative;
+    z-index: 2;
+}
+.hero-section .overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.65); /* dark overlay for readability */
+    z-index: 1;
+}
+.animated-stat {
+    transition: transform 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s;
+}
+.animated-stat:hover {
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 0.5rem 2rem rgba(78,115,223,0.15);
+}
+.feature-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 1rem;
+    border: none;
+}
+.feature-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 0.5rem 2rem rgba(34,74,190,0.12);
+    background: linear-gradient(135deg, #e3eafe 0%, #f8f9fc 100%);
+}
+.recent-books-carousel {
+    overflow-x: auto;
+    display: flex;
+    gap: 2rem;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+}
+.recent-books-carousel .card {
+    min-width: 320px;
+    scroll-snap-align: start;
+}
+@media (max-width: 768px) {
+    .hero-section { min-height: 340px; }
+    .recent-books-carousel .card { min-width: 240px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center">
+    <div class="overlay"></div>
+    <div class="container hero-content py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-7 text-white">
+                <h1 class="display-3 fw-bold mb-3 fade-in">
+                    <i class="fas fa-book-open me-3"></i>Welcome to OLMS
+                </h1>
+                <p class="lead mb-4 fade-in">
+                    <span class="fw-semibold">Discover, borrow, and manage books</span> with our modern Online Library Management System.<br>
+                    <span class="d-block mt-2">Empowering <span class="text-warning">students</span> and <span class="text-info">administrators</span> for a smarter library experience.</span>
+                </p>
+                <div class="d-flex gap-3 fade-in">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-warning btn-lg px-4 shadow">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    {% else %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg px-4 shadow">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="card animated-stat shadow-sm">
+                    <div class="card-body">
+<i class="fas fa-book fa-2x text-danger mb-2"></i>
+<h2 class="fw-bold text-danger mb-0" id="stat-books">{{ total_books }}</h2>
+
+                        <p class="text-muted mb-0">Total Books</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card animated-stat shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x text-success mb-2"></i>
+                        <h2 class="fw-bold text-success mb-0" id="stat-students">{{ total_students }}</h2>
+                        <p class="text-muted mb-0">Registered Students</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card animated-stat shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-exchange-alt fa-2x text-info mb-2"></i>
+                        <h2 class="fw-bold text-info mb-0" id="stat-issues">{{ total_issues }}</h2>
+                        <p class="text-muted mb-0">Active Issues</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card animated-stat shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <h2 class="fw-bold text-warning mb-0">24/7</h2>
+                        <p class="text-muted mb-0">Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-4">Why Choose OLMS?</h2>
+                <p class="lead text-muted">
+                    A next-generation library system for students and administrators
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-search fa-3x text-voilet mb-3"></i>
+                    <h5 class="fw-bold">Smart Book Search</h5>
+                    <p class="text-muted">Find books instantly by title, author, ISBN, or category with live search.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                    <h5 class="fw-bold">Mobile Friendly</h5>
+                    <p class="text-muted">Enjoy a seamless experience on any device, anywhere, anytime.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                    <h5 class="fw-bold">Secure & Reliable</h5>
+                    <p class="text-muted">Your data is protected with secure authentication and role-based access.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                    <h5 class="fw-bold">Real-time Tracking</h5>
+                    <p class="text-muted">Monitor book issues, returns, and overdue items in real-time.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-user-graduate fa-3x text-danger mb-3"></i>
+                    <h5 class="fw-bold">Student Portal</h5>
+                    <p class="text-muted">Students can browse, request, and track their books and history.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4 h-100">
+                    <i class="fas fa-user-shield fa-3x text-secondary mb-3"></i>
+                    <h5 class="fw-bold">Admin Dashboard</h5>
+                    <p class="text-muted">Admins manage books, users, and transactions with powerful tools.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Books Section -->
+{% if recent_books %}
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-2">Recently Added Books</h2>
+                <p class="lead text-muted mb-0">
+                    Check out some of our latest additions to the library
+                </p>
+            </div>
+        </div>
+        <div class="recent-books-carousel">
+            {% for book in recent_books %}
+            <div class="card h-100 border-0 shadow-sm">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-book fa-4x text-muted"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text text-muted">by {{ book.author }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">{{ book.category.name }}</span>
+                        <a href="{% url 'book_detail' book.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            {% if user.is_authenticated %}
+                {% if user.profile.user_type == 'admin' %}
+                    <a href="{% url 'book_list' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-books me-2"></i>View All Books
+                    </a>
+                {% else %}
+                    <a href="{% url 'student_book_list' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Browse Books
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Browse
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Call to Action -->
+<div class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead text-muted mb-4">
+                    Join our library community and start exploring thousands of books today.
+                </p>
+                {% if not user.is_authenticated %}
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </a>
+                        <a href="{% url 'contact' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate statistics
+function animateStat(id, end) {
+    let el = document.getElementById(id);
+    if (!el) return;
+    let start = 0;
+    let duration = 900;
+    let step = Math.ceil(end / (duration / 20));
+    let current = start;
+    let interval = setInterval(function() {
+        current += step;
+        if (current >= end) {
+            el.textContent = end;
+            clearInterval(interval);
+        } else {
+            el.textContent = current;
+        }
+    }, 20);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    animateStat('stat-books', parseInt(document.getElementById('stat-books').textContent));
+    animateStat('stat-students', parseInt(document.getElementById('stat-students').textContent));
+    animateStat('stat-issues', parseInt(document.getElementById('stat-issues').textContent));
+});
+</script>
+{% endblock %} 

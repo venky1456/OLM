@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Online Library Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-graduate me-2"></i>Student Dashboard
+            </h1>
+            <p class="text-muted">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'student_book_list' %}" class="btn btn-primary">
+                <i class="fas fa-search me-2"></i>Browse Books
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-voilet text-uppercase mb-1">
+                                Currently Borrowed
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_issues.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Borrowed
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_history.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-history fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Pending Requests
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_requests.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Issues and History -->
+    <div class="row">
+        <!-- Currently Borrowed Books -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-book me-2"></i>Currently Borrowed Books
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_issues %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Book</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Fine</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for issue in user_issues %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'book_detail' issue.book.id %}" class="text-decoration-none">
+                                                {{ issue.book.title }}
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">by {{ issue.book.author }}</small>
+                                        </td>
+                                        <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if issue.is_overdue %}
+                                                <span class="text-danger fw-bold">{{ issue.due_date|date:"M d, Y" }}</span>
+                                            {% else %}
+                                                {{ issue.due_date|date:"M d, Y" }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if issue.is_overdue %}
+                                                <span class="badge bg-danger">Overdue</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">Issued</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if issue.is_overdue %}
+                                                <span class="text-danger fw-bold">${{ issue.calculate_fine }}</span>
+                                            {% else %}
+                                                $0.00
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">You haven't borrowed any books yet.</p>
+                            <a href="{% url 'student_book_list' %}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Browse Books
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_history %}
+                        {% for transaction in user_history %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ transaction.book.title }}</h6>
+                                    <p class="text-muted small mb-1">
+                                        {% if transaction.status == 'returned' %}
+                                            <i class="fas fa-check text-success me-1"></i>Returned
+                                        {% elif transaction.status == 'overdue' %}
+                                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>Overdue
+                                        {% else %}
+                                            <i class="fas fa-info-circle text-info me-1"></i>{{ transaction.status|title }}
+                                        {% endif %}
+                                        on {{ transaction.return_date|date:"M d, Y"|default:transaction.issue_date|date:"M d, Y" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">No recent activity.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Book Requests -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-voilet">
+                        <i class="fas fa-clock me-2"></i>My Requests
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_requests %}
+                        {% for request in user_requests %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ request.book.title }}</h6>
+                                    <p class="text-muted small mb-1">{{ request.request_date|date:"M d, Y" }}</p>
+                                </div>
+                                <span class="badge bg-{{ request.status }}">
+                                    {% if request.status == 'pending' %}warning
+                                    {% elif request.status == 'approved' %}success
+                                    {% elif request.status == 'rejected' %}danger
+                                    {% else %}secondary{% endif %}">
+                                    {{ request.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">No book requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Books Alert -->
+    {% for issue in user_issues %}
+        {% if issue.is_overdue %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Overdue Book!</strong> "{{ issue.book.title }}" is overdue. 
+                    Please return it as soon as possible to avoid additional fines.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'student_book_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-search me-2"></i>Browse Books
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'student_book_list' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-book me-2"></i>Search by Category
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'contact' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-envelope me-2"></i>Contact Librarian
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

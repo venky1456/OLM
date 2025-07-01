@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction Management - OLMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">Transaction Management</h2>
+                <a href="{% url 'issue_book' %}" class="btn btn-dark">
+                    <i class="fas fa-plus me-2"></i>Issue New Book
+                </a>
+            </div>
+
+            <!-- Filters -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>Issued</option>
+                                <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                                <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-dark me-2">Filter</button>
+                            <a href="{% url 'transaction_list' %}" class="btn btn-secondary">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body">
+                    <h3 class="mb-4">Transactions ({{ page_obj.paginator.count }} total)</h3>
+                    
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Student</th>
+                                        <th>Book</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Return Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ transaction.transaction_id }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-bold">{{ transaction.student.get_full_name|default:transaction.student.username }}</div>
+                                                <small class="text-muted">{{ transaction.student.email }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-bold">{{ transaction.book.title }}</div>
+                                                <small class="text-muted">by {{ transaction.book.author }}</small>
+                                            </div>
+                                        </td>
+                                        <td>{{ transaction.issue_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="{% if transaction.due_date < today and transaction.status == 'issued' %}text-danger fw-bold{% endif %}">
+                                                {{ transaction.due_date|date:"M d, Y" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if transaction.return_date %}
+                                                {{ transaction.return_date|date:"M d, Y" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if transaction.status == 'issued' %}
+                                                {% if transaction.due_date < today %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Issued</span>
+                                                {% endif %}
+                                            {% elif transaction.status == 'returned' %}
+                                                <span class="badge bg-info">Returned</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ transaction.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if transaction.status == 'issued' %}
+                                                    <a href="{% url 'return_book' transaction.transaction_id %}" class="btn btn-sm btn-outline-success" title="Return Book">
+                                                        <i class="fas fa-undo"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#transactionModal{{ transaction.id }}" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                        <nav aria-label="Transaction pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No transactions found</h5>
+                            <a href="{% url 'issue_book' %}" class="btn btn-dark">
+                                <i class="fas fa-plus me-2"></i>Issue First Book
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Detail Modals -->
+{% for transaction in page_obj %}
+<div class="modal fade" id="transactionModal{{ transaction.id }}" tabindex="-1" aria-labelledby="transactionModalLabel{{ transaction.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionModalLabel{{ transaction.id }}">
+                    Transaction Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Book Information</h6>
+                        <p><strong>Title:</strong> {{ transaction.book.title }}</p>
+                        <p><strong>Author:</strong> {{ transaction.book.author }}</p>
+                        <p><strong>ISBN:</strong> {{ transaction.book.isbn }}</p>
+                        <p><strong>Category:</strong> {{ transaction.book.category.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Student Information</h6>
+                        <p><strong>Name:</strong> {{ transaction.student.get_full_name|default:transaction.student.username }}</p>
+                        <p><strong>Email:</strong> {{ transaction.student.email }}</p>
+                        <p><strong>Username:</strong> {{ transaction.student.username }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Transaction Details</h6>
+                        <p><strong>Transaction ID:</strong> {{ transaction.transaction_id }}</p>
+                        <p><strong>Issue Date:</strong> {{ transaction.issue_date|date:"F d, Y" }}</p>
+                        <p><strong>Due Date:</strong> {{ transaction.due_date|date:"F d, Y" }}</p>
+                        <p><strong>Issued By:</strong> {{ transaction.issued_by.get_full_name|default:transaction.issued_by.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Status Information</h6>
+                        <p><strong>Status:</strong> 
+                            {% if transaction.status == 'issued' %}
+                                {% if transaction.due_date < today %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-success">Issued</span>
+                                {% endif %}
+                            {% elif transaction.status == 'returned' %}
+                                <span class="badge bg-info">Returned</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ transaction.status|title }}</span>
+                            {% endif %}
+                        </p>
+                        {% if transaction.return_date %}
+                            <p><strong>Return Date:</strong> {{ transaction.return_date|date:"F d, Y" }}</p>
+                        {% endif %}
+                        {% if transaction.fine_amount %}
+                            <p><strong>Fine Amount:</strong> ${{ transaction.fine_amount }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                {% if transaction.status == 'issued' %}
+                    <a href="{% url 'return_book' transaction.transaction_id %}" class="btn btn-success">
+                        <i class="fas fa-undo me-2"></i>Return Book
+                    </a>
+                {% endif %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 
