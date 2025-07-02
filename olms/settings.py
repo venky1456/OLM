@@ -29,6 +29,9 @@ DEBUG = 'False'
 
 ALLOWED_HOSTS = ["olm-s1bt.onrender.com"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://olm-s1bt.onrender.com"
+]
 
 # Application definition
 
